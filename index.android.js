@@ -5,49 +5,51 @@
  */
 
 import React, { Component } from 'react';
+
 import {
-  AppRegistry,
-  StyleSheet,
   Text,
-  View
+  View,
+  WebView,
+  TouchableHighlight
 } from 'react-native';
 
-export default class webViewCrash extends Component {
+class webViewCrash extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      webViewResponse: 'nothing yet received'
+    };
+  }
+  
+  onExecuteWebViewCode() {
+    this.webview.postMessage(JSON.stringify({
+      type: 'executeUserCode',
+      code: `while (true) { console.log('this will crash the app!'); }`
+    }));
+  }
+ 
+  onWebViewMessage(event) {
+    this.setState({ webViewResponse: JSON.parse(event.nativeEvent.data).response });
+  }
+
   render() {
     return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          Welcome to React Native!
-        </Text>
-        <Text style={styles.instructions}>
-          To get started, edit index.android.js
-        </Text>
-        <Text style={styles.instructions}>
-          Double tap R on your keyboard to reload,{'\n'}
-          Shake or press menu button for dev menu
-        </Text>
+      <View style={{flex: 1, margin: 20}}>
+      	<View style={{flex: 1 }}>
+          <Text>{this.state.webViewResponse}</Text>
+          <WebView onMessage={this.onWebViewMessage.bind(this)}
+            ref={webview => { this.webview = webview; } }
+            javaScriptEnabled={true}
+            startInLoadingState={true}
+            source={{html: htmlSource}} />
+          <TouchableHighlight style={{backgroundColor: 'orange', height: 50, alignItems: 'center', justifyContent: 'center'}}
+          	onPress={this.onExecuteWebViewCode.bind(this)}>
+              <Text style={{color: 'white'}}>Tap to Execute Infinite Loop in WebView</Text>
+          </TouchableHighlight>
+				</View>
       </View>
     );
   }
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-});
+};
 
 AppRegistry.registerComponent('webViewCrash', () => webViewCrash);
