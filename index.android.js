@@ -10,10 +10,41 @@ import {
   Text,
   View,
   WebView,
-  TouchableHighlight
+  TouchableHighlight,
+  AppRegistry
 } from 'react-native';
 
-class webViewCrash extends Component {
+const htmlSource = `
+<!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <title>Webview Example</title>
+  </head>
+  <body>
+    <div style="background-color:blue;width:300px;height:300px;color:white;font-size: 20px">
+      WebView Container
+    </div>
+    <script type="text/javascript">
+      var onReceiveMessage = function(nativeEvent) {
+        var nativeMessage = JSON.parse(nativeEvent.data);
+        window.postMessage(JSON.stringify({response: 'message received, will try to eval code now...'}));
+
+        switch (nativeMessage.type) {
+          case 'executeUserCode':
+            eval(nativeMessage.code);
+            window.postMessage(JSON.stringify({response: 'code execution completed successfully.'}));
+          default:
+        }
+      };
+
+      document.addEventListener('message', onReceiveMessage);
+    </script>
+  </body>
+</html>
+`;
+
+export default class webViewCrash extends Component {
   constructor(props) {
     super(props);
     this.state = {
